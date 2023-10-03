@@ -191,7 +191,7 @@ define(['N'],
 
             constructor() {
 
-                let subsidiaryMap = {};
+                let subsidiaryMap = {}; // * Audit: Util, manejo de JSON
 
                 // Only get the peru subsidiaries
                 let countries = ['PE'];
@@ -201,7 +201,7 @@ define(['N'],
                     type: 'subsidiary',
                     columns: ['internalid', 'name'],
                     filters: [
-                        ['country', 'anyof'].concat(countries),
+                        ['country', 'anyof'].concat(countries), // * Audit: Util, concat
                         'AND',
                         ['isinactive', 'is', 'F']
                     ]
@@ -221,7 +221,7 @@ define(['N'],
                     columns: [CONFIG_RECORD.fields.subsidiary, CONFIG_RECORD.fields.item, CONFIG_RECORD.fields.foreignFlow]
                 }).run().each(node => {
 
-                    let setupId = node.id;
+                    let setupId = node.id; // * Audit: Busqueda, es el id del registro?
                     let subsidiary = node.getValue(node.columns[0]);
                     let item = node.getValue(node.columns[1]);
                     let foreignFlow = node.getValue(node.columns[2])

@@ -32,7 +32,7 @@ define(['N'],
         //The Default Language will be Spanish
         let currentLanguage = HEADER[language] ? HEADER[language] : 2;
 
-        let labelMap = {};
+        let labelMap = {}; // * Audit: Util, manejo de JSON
 
         TRANSLATE.forEach(line => {
           let id = line[0];

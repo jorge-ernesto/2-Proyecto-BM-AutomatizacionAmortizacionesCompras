@@ -1,3 +1,9 @@
+// Notas del archivo:
+// - Secuencia de comando:
+//      - BM - Amortization Journal User Event (customscript_bm_aj_user_event)
+// - Registro:
+//      - Asiento diario (journalentry)
+
 /**
  * @NApiVersion 2.1
  * @NScriptType UserEventScript

@@ -29,11 +29,12 @@ define(['N'],
         tranIdTransaction: 'custcol24'
       }
     }
+    log.audit('AMORTIZATION_JOURNAL_RECORD', AMORTIZATION_JOURNAL_RECORD);
 
     /**
      * @param {Integer} subsidiary
      * @description
-     * check if the subsidiary has feature enabled 
+     * check if the subsidiary has feature enabled
      * @returns {Boolean}
      */
     function isFeatureEnabled(subsidiary) {
@@ -48,7 +49,7 @@ define(['N'],
         ]
       }).run().each(node => {
 
-        status = node.getValue('custrecord_bm_am_enable_foreign');
+        status = node.getValue('custrecord_bm_am_enable_foreign'); // * Audit: Busqueda, esto era posible en una busqueda?
         status = status == 'T' || status == true ? true : false;
 
         return false;
@@ -64,20 +65,20 @@ define(['N'],
      * @returns {Boolean}
      */
     function isAmortizationJournal(journalRecord) {
-      let value = journalRecord.getValue(AMORTIZATION_JOURNAL_RECORD.fields.isAmortization);
+      let value = journalRecord.getValue(AMORTIZATION_JOURNAL_RECORD.fields.isAmortization); // * Audit: isfromamortization
 
       return value == 'T' || value == true ? true : false;
     }
 
     /**
-     * @param {Record} journalRecord 
+     * @param {Record} journalRecord
      * @description
      * Get the amortization scheduled related to Journal Record
      * @returns {Array}
      */
     function getAmortizationSchedules(journalRecord) {
 
-      let amortizationScheduleMap = {}
+      let amortizationScheduleMap = {} // * Audit: Util
 
       let totalLines = journalRecord.getLineCount('line');
       for (var i = 0; i < totalLines; i++) {
@@ -97,13 +98,13 @@ define(['N'],
 
     /**
      * @description
-     * Get the Map when the key is the internal id of the subsidiary and the value 
+     * Get the Map when the key is the internal id of the subsidiary and the value
      * is the currency of the subsidiary
      * @returns {Object}
      */
     function getCurrencyBySubsidiary() {
 
-      let currentSubsidiaryMap = {};
+      let currentSubsidiaryMap = {}; // * Audit: Util, manejo de JSON
       search.create({ type: 'subsidiary', columns: ['internalid', 'currency'] })
         .run().each(node => {
           currentSubsidiaryMap[node.id] = node.getValue('currency');
@@ -120,7 +121,7 @@ define(['N'],
      */
     function getOnlyAmortizationWithForeignCurrency(currentList) {
 
-      let amortizationScheduledMap = {};
+      let amortizationScheduledMap = {}; // * Audit: Util, manejo de JSON
 
       let currencySubsidiaryMap = getCurrencyBySubsidiary();
 
@@ -128,7 +129,7 @@ define(['N'],
         type: "amortizationschedule",
         filters:
           [
-            ['internalid', 'anyof'].concat(currentList)
+            ['internalid', 'anyof'].concat(currentList) // * Audit: Util, concat
           ],
         columns:
           [
@@ -184,7 +185,7 @@ define(['N'],
     }
 
     /**
-     * @param {Record} journalRecord 
+     * @param {Record} journalRecord
      * @description
      * Get the values of the Journal Record
      * @returns {Object} Get the Object Information related to Journal
@@ -297,18 +298,18 @@ define(['N'],
     }
 
     /**
-     * @param {Object} amortizationScheduleMap 
+     * @param {Object} amortizationScheduleMap
      * @description
      * Transform the input to new Object when the key will be the currency and
      * it has one propperty:
-     * - Templates : is an array 
+     * - Templates : is an array
      * @returns {Object}
      */
     function groupAmortizationByCurrency(amortizationScheduleMap) {
 
-      let currencyMap = {};
+      let currencyMap = {}; // * Audit: Util, manejo de JSON
 
-      for (var scheduled in amortizationScheduleMap) {
+      for (var scheduled in amortizationScheduleMap) { // * Audit: Util, for in
 
         let currency = amortizationScheduleMap[scheduled].currency;
 
@@ -324,8 +325,8 @@ define(['N'],
     }
 
     /**
-     * @param {Array} templates 
-     * @param {Integer} journal 
+     * @param {Array} templates
+     * @param {Integer} journal
      * @description
      * create a amortization schedule search when the input are used how filters of
      * the search.
@@ -343,7 +344,7 @@ define(['N'],
       search.create({
         type: 'amortizationschedule',
         filters: [
-          ['internalid', 'anyof'].concat(templates),
+          ['internalid', 'anyof'].concat(templates), // * Audit: Util, concat
           'AND',
           ['journal.internalid', 'anyof', journal]
         ],
@@ -390,10 +391,10 @@ define(['N'],
     }
 
     /**
-     * @param {Record} journalRecord 
-     * @param {Array} glLines 
-     * @param {Integer} currency 
-     * @param {Object} templateMap 
+     * @param {Record} journalRecord
+     * @param {Array} glLines
+     * @param {Integer} currency
+     * @param {Object} templateMap
      * @description
      * Create a new Journal with the input currenncy
      * For fill the main fields of the journal used the JournalRecord
@@ -470,9 +471,9 @@ define(['N'],
     }
 
     /**
-     * @param {Record} journalRecord 
-     * @param {Record} reverseJournal 
-     * @param {Object} foreignJournalMap 
+     * @param {Record} journalRecord
+     * @param {Record} reverseJournal
+     * @param {Object} foreignJournalMap
      * @description
      * update the journal Record Line, in each line set the reversejournal and foreignjournal
      * how can there be more than 1 foreign journal, this information is foreignJournalMap
@@ -491,7 +492,7 @@ define(['N'],
       }
 
       log.debug('Join.Templates', arrayTemplates);
-      let templateTranidMap = {}
+      let templateTranidMap = {} // * Audit: Util
 
       search.create({
         type: 'amortizationschedule',
@@ -500,7 +501,7 @@ define(['N'],
           { name: 'tranid', join: 'transaction', summary: 'GROUP' }
         ],
         filters: [
-          ['internalid', 'anyof'].concat(arrayTemplates)
+          ['internalid', 'anyof'].concat(arrayTemplates) // * Audit: Util, concat
         ]
       }).run().each(node => {
         let { columns } = node;
@@ -579,7 +580,7 @@ define(['N'],
         // Get the transactions with foreign currency (Different to PEN)
         let amortizationScheduledForeignCurrencyList = getOnlyAmortizationWithForeignCurrency(amortizationScheduledList);
 
-        if (Object.keys(amortizationScheduledForeignCurrencyList).length == 0) {
+        if (Object.keys(amortizationScheduledForeignCurrencyList).length == 0) { // * Audit: Util, Object.keys
           log.debug('JournalAmortization.Exception', 'There are no amortization schedule with foreign currency')
           return
         }
@@ -598,9 +599,9 @@ define(['N'],
         let amortizationScheduledGroupByCurrency = groupAmortizationByCurrency(amortizationScheduledForeignCurrencyList);
         log.debug('Currencies', amortizationScheduledGroupByCurrency);
 
-        let templateJournalMap = {};
+        let templateJournalMap = {}; // * Audit: Util, manejo de JSON
 
-        for (var currency in amortizationScheduledGroupByCurrency) {
+        for (var currency in amortizationScheduledGroupByCurrency) { // * Audit: Util, for in
 
           let templates = amortizationScheduledGroupByCurrency[currency].templates;
 
@@ -635,18 +636,18 @@ define(['N'],
       }
     }
 
-    /** 
-     * @param {Record} journalRecord 
+    /**
+     * @param {Record} journalRecord
      * @description
      * Get the reverse Journal and the foreign Journals related to Journal Record and delete them
-     * @returns 
+     * @returns
      */
     function deleteOthersJournals(journalRecord) {
 
 
       if (!isAmortizationJournal(journalRecord)) return;
 
-      let journalMap = {};
+      let journalMap = {}; // * Audit: Util, manejo de JSON
 
       let totalLines = journalRecord.getLineCount('line');
 
@@ -668,8 +669,8 @@ define(['N'],
     }
 
     /**
-     * 
-     * @param {Integer} journalId 
+     *
+     * @param {Integer} journalId
      * @description
      * Check if the journal have foreign currencies
      * @returns {Boolean}
@@ -702,8 +703,8 @@ define(['N'],
      *****************************************************************/
 
     /**
-     * @param {Record/Integer} journalRecord 
-     * @param {String} mode 
+     * @param {Record/Integer} journalRecord
+     * @param {String} mode
      * @description
      * Main Function, it is used for start flow, or for delete the relations
      */
@@ -762,7 +763,7 @@ define(['N'],
 
       if (journalList.length > 0) {
         journalAmortizationSearchContext.filters.push('AND');
-        journalAmortizationSearchContext.filters.push(["journal.internalid", "noneof"].concat(journalList));
+        journalAmortizationSearchContext.filters.push(["journal.internalid", "noneof"].concat(journalList)); // * Audit: Util, concat
       }
 
       let resultSet = [];
@@ -783,10 +784,10 @@ define(['N'],
     }
 
     /**
-     * @param {UserEventContext} context 
+     * @param {UserEventContext} context
      * @description
      * Manage the Journal Amortization Form. show messages and aditional function for User Interface
-     * @returns 
+     * @returns
      */
     function manageForm(context) {
 
@@ -794,7 +795,7 @@ define(['N'],
 
       if (context.type != 'view') return
 
-      let isAmortization = context.newRecord.getValue(AMORTIZATION_JOURNAL_RECORD.fields.isAmortization);
+      let isAmortization = context.newRecord.getValue(AMORTIZATION_JOURNAL_RECORD.fields.isAmortization); // * Audit: isfromamortization, como supo que boton usar?
 
       if (isAmortization == 'F' || isAmortization == false) return;
 
@@ -807,11 +808,11 @@ define(['N'],
 
       if (context.type == 'view') {
 
-        let foreignFlowExecuted = context.newRecord.getValue(AMORTIZATION_JOURNAL_RECORD.fields.foreignFlow);
+        let foreignFlowExecuted = context.newRecord.getValue(AMORTIZATION_JOURNAL_RECORD.fields.foreignFlow); // * Audit: custbody_bm_foreign_ja_completed
 
         if (foreignFlowExecuted == true || foreignFlowExecuted == 'T') {
 
-          context.form.addPageInitMessage({
+          context.form.addPageInitMessage({ // * Audit: Detiene el proceso
             type: 'INFO',
             message: 'La transacción ya tiene el flujo de amortizaciones para monedas extranjeras completado.',
             duration: 30000
@@ -820,7 +821,7 @@ define(['N'],
         };
 
         if (haveForeignCurrency(context.newRecord.id)) {
-          context.form.addButton({
+          context.form.addButton({ // * Audit: Solo crea el boton en modo 'view'
             id: 'custpage_exeucte_foreign_flow',
             label: 'BM - Proceso de Amortization (Moneda Extranjera)',
             functionName: 'executeFlow()'

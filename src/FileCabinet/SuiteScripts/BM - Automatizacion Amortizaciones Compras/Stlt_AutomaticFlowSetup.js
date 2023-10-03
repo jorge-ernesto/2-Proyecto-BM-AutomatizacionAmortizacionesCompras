@@ -1,3 +1,7 @@
+// Notas del archivo:
+// - Secuencia de comando:
+//      - BM - Purch. Amorzitation Setup STLT (customscript_bm_purchase_amor_set_stlt)
+
 /**
  * @NApiVersion 2.1
  * @NScriptType Suitelet
@@ -24,11 +28,12 @@ define(['N', './lib/Lib.AutomaticFlowDao', './lib/Lib.AutomaticFlowAmortizations
                 save: 'custpage_message_save'
             }
         }
+        log.audit('SUITELET_CONTEXT', SUITELET_CONTEXT);
 
         function adapterTranslateLanguage(daoContext) {
 
-            let context = {};
-            for (var key in SUITELET_CONTEXT.fields) {
+            let context = {}; // * Audit: Util, manejo de JSON
+            for (var key in SUITELET_CONTEXT.fields) { // * Audit: Util, for in
 
                 context[key] = {
                     id: SUITELET_CONTEXT.fields[key],
@@ -45,6 +50,7 @@ define(['N', './lib/Lib.AutomaticFlowDao', './lib/Lib.AutomaticFlowAmortizations
             let daoContext = new Dao();
 
             let translates = adapterTranslateLanguage(daoContext);
+            log.audit('translates', translates);
 
             let amoritzationSetup = new AmoritzationSetup();
 
@@ -69,7 +75,8 @@ define(['N', './lib/Lib.AutomaticFlowDao', './lib/Lib.AutomaticFlowAmortizations
 
                 subsidiaryField.addSelectOption({ value: '', text: '' });
 
-                Object.values(amoritzationSetup.getAll()).forEach(node => {
+                log.audit('amoritzationSetup', amoritzationSetup.getAll());
+                Object.values(amoritzationSetup.getAll()).forEach(node => { // * Audit: Util, Object.values
                     subsidiaryField.addSelectOption({ value: node.id, text: node.name });
                 })
 
@@ -77,7 +84,7 @@ define(['N', './lib/Lib.AutomaticFlowDao', './lib/Lib.AutomaticFlowAmortizations
                 form.addFieldGroup({
                     id: SUITELET_CONTEXT.groups.criteria,
                     label: daoContext.get(SUITELET_CONTEXT.groups.criteria)
-                }).isSingleColumn = true;
+                }).isSingleColumn = true; // * Audit: Para que sirve isSigleColumn?
 
                 // Add Item in the Criteria Group
                 let itemField = form.addField({
@@ -106,6 +113,7 @@ define(['N', './lib/Lib.AutomaticFlowDao', './lib/Lib.AutomaticFlowAmortizations
                         type: message.Type.CONFIRMATION
                     })
                 }
+                // * Audit: Carga Subsidiaria pasada por la URL
                 let subsidiary = context.request.parameters['_subsi'];
 
                 subsidiaryField.defaultValue = subsidiary;
@@ -117,6 +125,7 @@ define(['N', './lib/Lib.AutomaticFlowDao', './lib/Lib.AutomaticFlowAmortizations
                     foreignSetup = amoritzationSetup.isEnabledForeignFlow(subsidiary);
                     foreignSetup = foreignSetup ? 'T' : 'F';
                 }
+                // * Audit: Carga item seleccionado y check para generar asientos de amortizaciones
                 itemField.defaultValue = itemSetup;
                 foreignCheckField.defaultValue = foreignSetup;
 
